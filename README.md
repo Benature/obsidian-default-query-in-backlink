@@ -2,6 +2,14 @@
 
 Automatically input default query in search input of backlinks in document.
 
+- Automatically trigger query after file is opened.
+- Custom query is preserved in the same leaf.
+- Overwrite old default query if settings is updated.
+
+<center>
+<img src="https://s2.loli.net/2024/03/04/N5yuQhaF3z6Anop.gif" />
+</center>
+
 
 ## Install
 

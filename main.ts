@@ -7,15 +7,17 @@ interface MyPluginSettings {
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
-	defaultQuery: '-Diary'
+	defaultQuery: '-path:Diary'
 }
 
 export default class DefaultQuery extends Plugin {
 	settings: MyPluginSettings;
+	lastDefaultQuery: string[];
 
 	async onload() {
 		await this.loadSettings();
 		this.addSettingTab(new DefaultQuerySettingTab(this.app, this));
+		this.resetLastDefaultQuery();
 
 		this.app.workspace.on('file-open', (file) => {
 			if (file === null) { return; }
@@ -30,7 +32,11 @@ export default class DefaultQuery extends Plugin {
 			// Set the default query
 			const input = searchInputContainer.querySelector("input");
 			if (input === null) { return; }
-			if (input.value) { return; }
+			// preserve the custom query, but replace one default query
+			if (input.value && input.value != this.lastDefaultQuery[0]) {
+				return;
+			}
+			this.resetLastDefaultQuery();
 			input.value = this.settings.defaultQuery;
 
 			// Simulate a user input event to trigger the search
@@ -40,7 +46,10 @@ export default class DefaultQuery extends Plugin {
 			});
 			input.dispatchEvent(eventBlankInput);
 		});
+	}
 
+	resetLastDefaultQuery() {
+		this.lastDefaultQuery = [this.settings.defaultQuery];
 	}
 
 	onunload() {
@@ -76,6 +85,7 @@ class DefaultQuerySettingTab extends PluginSettingTab {
 				.setPlaceholder('query')
 				.setValue(this.plugin.settings.defaultQuery)
 				.onChange(async (value) => {
+					this.plugin.lastDefaultQuery.push(this.plugin.settings.defaultQuery);
 					this.plugin.settings.defaultQuery = value;
 					await this.plugin.saveSettings();
 				}));

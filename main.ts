@@ -19,22 +19,31 @@ export default class DefaultQuery extends Plugin {
 
 		this.app.workspace.on('file-open', (file) => {
 			if (file === null) { return; }
-			// console.log(`File opened: ${file.path}`);
-			const buttonShowSearchFilters = document.querySelectorAll('.workspace-leaf.mod-active div[aria-label="Show search filter"].clickable-icon.nav-action-button'); // .is-active
 			const searchInputContainer = document.querySelector('.workspace-leaf.mod-active .search-input-container');
 			if (searchInputContainer === null) { return; }
 
-			searchInputContainer.setAttribute('style', '');
+			// Show the search input
+			let style = searchInputContainer.getAttribute('style') as string;
+			style = style.replace(/display:\s?none;?/g, '');
+			searchInputContainer.setAttribute('style', style);
+
+			// Set the default query
 			const input = searchInputContainer.querySelector("input");
 			if (input === null) { return; }
 			if (input.value) { return; }
 			input.value = this.settings.defaultQuery;
+
+			// Simulate a user input event to trigger the search
+			var eventBlankInput = new InputEvent('input', {
+				'bubbles': true,
+				'cancelable': true,
+			});
+			input.dispatchEvent(eventBlankInput);
 		});
 
 	}
 
 	onunload() {
-
 	}
 
 	async loadSettings() {

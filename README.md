@@ -10,6 +10,12 @@ Automatically input default query in search input of backlinks in document.
 <img src="https://s2.loli.net/2024/03/04/N5yuQhaF3z6Anop.gif" />
 </center>
 
+## My Story
+
+I usually write todo items that link to other note files in my daily notes. Meanwhile, I open the "backlinks in document" feature to see what other notes are related to the current one. However, since there are many daily notes linking to other notes, the backlinks view becomes cluttered, overwhelmed by daily notes that don't provide much useful information. 
+
+To avoid displaying daily notes (for example, those located in the `Diary/` folder), I have to manually input the search query `-path:Diary` in the backlinks view each time. This is why I developed this plugin – to simplify the process of inputting search queries in the backlinks view.
+
 
 ## Install
 

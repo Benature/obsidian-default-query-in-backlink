@@ -1,15 +1,15 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
-interface MyPluginSettings {
+interface DefaultQuerySettings {
 	defaultQuery: string;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
+const DEFAULT_SETTINGS: DefaultQuerySettings = {
 	defaultQuery: '-path:Diary'
 }
 
 export default class DefaultQuery extends Plugin {
-	settings: MyPluginSettings;
+	settings: DefaultQuerySettings;
 	lastDefaultQuery: string[];
 
 	async onload() {
@@ -38,7 +38,7 @@ export default class DefaultQuery extends Plugin {
 			input.value = this.settings.defaultQuery;
 
 			// Simulate a user input event to trigger the search
-			var eventBlankInput = new InputEvent('input', {
+			const eventBlankInput = new InputEvent('input', {
 				'bubbles': true,
 				'cancelable': true,
 			});

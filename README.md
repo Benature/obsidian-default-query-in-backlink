@@ -12,7 +12,9 @@ Automatically input default query in search input of backlinks in document.
 
 ## My Story
 
-I usually write todo items that link to other note files in my daily notes. Meanwhile, I open the "backlinks in document" feature to see what other notes are related to the current one. However, since there are many daily notes linking to other notes, the backlinks view becomes cluttered, overwhelmed by daily notes that don't provide much useful information. 
+I use the "backlinks in document" feature to explore connections with other notes. Meanwhile, many note files are linked from my daily notes, such as todo items or those automatically added by the [List Modified](https://obsidian.md/plugins?id=obsidian-list-modified) plugin.
+
+However, since there are many daily notes linking to other notes, the backlinks view becomes cluttered, overwhelmed by daily notes that don't provide much useful information. 
 
 To avoid displaying daily notes (for example, those located in the `Diary/` folder), I have to manually input the search query `-path:Diary` in the backlinks view each time. This is why I developed this plugin – to simplify the process of inputting search queries in the backlinks view.
 

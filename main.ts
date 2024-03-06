@@ -17,7 +17,7 @@ export default class DefaultQuery extends Plugin {
 		this.addSettingTab(new DefaultQuerySettingTab(this.app, this));
 		this.resetLastDefaultQuery();
 
-		this.app.workspace.on('file-open', (file) => {
+		this.registerEvent(this.app.workspace.on('file-open', (file) => {
 			if (file === null) { return; }
 			const searchInputContainer = document.querySelector('.workspace-leaf.mod-active .search-input-container');
 			if (searchInputContainer === null) { return; }
@@ -34,8 +34,9 @@ export default class DefaultQuery extends Plugin {
 			if (input.value && input.value != this.lastDefaultQuery[0]) {
 				return;
 			}
-			this.resetLastDefaultQuery();
+			// overwrite query
 			input.value = this.settings.defaultQuery;
+			this.resetLastDefaultQuery();
 
 			// Simulate a user input event to trigger the search
 			const eventBlankInput = new InputEvent('input', {
@@ -43,7 +44,7 @@ export default class DefaultQuery extends Plugin {
 				'cancelable': true,
 			});
 			input.dispatchEvent(eventBlankInput);
-		});
+		}));
 	}
 
 	resetLastDefaultQuery() {
@@ -78,7 +79,7 @@ class DefaultQuerySettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Default query')
-			// .setDesc('It\'s a secret')
+			.setDesc('The query will be automatically added if the search input is empty.')
 			.addText(text => text
 				.setPlaceholder('query')
 				.setValue(this.plugin.settings.defaultQuery)

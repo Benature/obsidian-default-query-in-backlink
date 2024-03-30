@@ -6,12 +6,12 @@ Automatically input default query in search input of backlinks in document.
 - Custom query is preserved in the same leaf.
 - Overwrite old default query if settings is updated.
 
-<center>
+<div align="center">
 <img src="https://s2.loli.net/2024/03/04/N5yuQhaF3z6Anop.gif" />
 
 [Click to install](https://obsidian.md/plugins?id=default-query-in-backlinks)
 
-</center>
+</div>
 
 >Chinese introduction: [公众号](https://mp.weixin.qq.com/s/kACkM88Or8JTPXGsOdeQcQ) / [小红书](http://xhslink.com/PxqQNE)
 

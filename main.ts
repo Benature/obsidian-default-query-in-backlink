@@ -28,6 +28,7 @@ const DEFAULT_SETTINGS: DefaultQuerySettings = {
 		sortOrder: SortOrderType.alphabetical,
 		collapseAll: false,
 		extraContext: false,
+		unlinkedCollapsed: false,
 	},
 	rememberSettings: {
 		dbFileName: '',
@@ -45,6 +46,7 @@ interface EphemeralState {
 	sortOrder: SortOrderType,
 	collapseAll: boolean;
 	extraContext: boolean;
+	unlinkedCollapsed: boolean;
 }
 
 
@@ -53,6 +55,7 @@ export default class DefaultQuery extends Plugin {
 	lastDefaultQuery: string[];
 
 	// remember backlink nav buttons
+	// remember logic credits go to https://github.com/dy-sh/obsidian-remember-cursor-position
 	db: { [file_path: string]: EphemeralState };
 	lastSavedDb: { [file_path: string]: EphemeralState };
 	lastEphemeralState: EphemeralState;
@@ -136,9 +139,9 @@ export default class DefaultQuery extends Plugin {
 			if (file === null) { return; }
 
 			let st: EphemeralState | null = this.settings.defaultState;
-			if (this.settings.rememberSettings.rememberBacklinkNav) {
-				st = null;
-			}
+			// if (this.settings.rememberSettings.rememberBacklinkNav) {
+			// 	st = null;
+			// }
 			setTimeout(() => {
 				this.restoreEphemeralState(st);
 				// this.setQuery(this.settings.defaultState.searchQuery.query);
@@ -223,34 +226,36 @@ export default class DefaultQuery extends Plugin {
 
 
 	async restoreEphemeralState(specificState: EphemeralState | null = null) {
-		let fileName = this.app.workspace.getActiveFile()?.path;
-
-		if (fileName == undefined) { return; }
-
-		if (fileName && this.loadingFile && this.lastLoadedFileName == fileName) //if already started loading
-			return;
-
 		let isSet = false;
-		this.loadingFile = true;
+		if (this.settings.rememberSettings.rememberBacklinkNav) {
+			let fileName = this.app.workspace.getActiveFile()?.path;
 
-		if (this.lastLoadedFileName != fileName) {
-			this.lastEphemeralState = {} as EphemeralState;
-			this.lastLoadedFileName = fileName;
+			if (fileName == undefined) { return; }
 
-			if (fileName) {
-				let st = this.db[fileName];
-				if (specificState != null) {
-					st = specificState;
-				}
-				if (st) {
-					this.setEphemeralState(st);
-					this.lastEphemeralState = st;
-					isSet = true;
+			if (fileName && this.loadingFile && this.lastLoadedFileName == fileName) //if already started loading
+				return;
+
+			this.loadingFile = true;
+
+			if (this.lastLoadedFileName != fileName) {
+				this.lastEphemeralState = {} as EphemeralState;
+				this.lastLoadedFileName = fileName;
+
+				if (fileName) {
+					let st = this.db[fileName];
+					if (specificState != null) {
+						st = specificState;
+					}
+					if (st) {
+						this.setEphemeralState(st);
+						this.lastEphemeralState = st;
+						isSet = true;
+					}
 				}
 			}
-		}
 
-		this.loadingFile = false;
+			this.loadingFile = false;
+		}
 
 		// not set EphemeralState, then it may be a new file, set a default state
 		if (!isSet) {
@@ -305,6 +310,7 @@ export default class DefaultQuery extends Plugin {
 		state.sortOrder = backlinks.backlinkDom.sortOrder;
 		state.collapseAll = backlinks.collapseAll;
 		state.extraContext = backlinks.extraContext;
+		state.unlinkedCollapsed = backlinks.unlinkedCollapsed;
 		if (backlinks.searchQuery) {
 			state.searchQuery.query = backlinks.searchQuery.query;
 		} else {
@@ -322,12 +328,14 @@ export default class DefaultQuery extends Plugin {
 
 		this.setQuery(state.searchQuery.query, true);
 		this.setSortOrder(state.sortOrder);
-		if (state.collapseAll != backlinks.collapseAll) {
+		if (state.collapseAll != backlinks.collapseAll)
 			backlinks.setCollapseAll(state.collapseAll);
-		}
-		if (state.extraContext != backlinks.extraContext) {
+
+		if (state.extraContext != backlinks.extraContext)
 			backlinks.setExtraContext(state.extraContext);
-		}
+
+		if (state.unlinkedCollapsed == backlinks.unlinkedCollapsed)
+			backlinks.setUnlinkedCollapsed(!state.unlinkedCollapsed, !0); // false to unclasped unlinked
 	}
 
 	resetLastDefaultQuery() {
@@ -391,7 +399,6 @@ class DefaultQuerySettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.defaultState.collapseAll)
 					.onChange(async (value) => {
 						this.plugin.settings.defaultState.collapseAll = value;
-						this.display();
 						await this.plugin.saveSettings();
 					});
 			});
@@ -403,7 +410,6 @@ class DefaultQuerySettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.defaultState.extraContext)
 					.onChange(async (value) => {
 						this.plugin.settings.defaultState.extraContext = value;
-						this.display();
 						await this.plugin.saveSettings();
 					});
 			});
@@ -423,6 +429,17 @@ class DefaultQuerySettingTab extends PluginSettingTab {
 						this.plugin.settings.defaultState.sortOrder = value as SortOrderType;
 						await this.plugin.saveSettings();
 					}));
+		new Setting(containerEl)
+			.setName("Expand Unlinked mentions")
+			// .setDesc("Restore backlink navigation configuration when opening a file.")
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings.defaultState.unlinkedCollapsed)
+					.onChange(async (value) => {
+						this.plugin.settings.defaultState.unlinkedCollapsed = value;
+						await this.plugin.saveSettings();
+					});
+			});
 
 		containerEl.createEl("h3", { text: "Remember backlinks navigation" })
 
@@ -471,9 +488,11 @@ class DefaultQuerySettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}));
 		}
-		let noteEl = containerEl.createEl("p", {
-			text: `Known issue: The check mark in the menu of "Change sort order" can not be updated. But the sort order takes effect.`
-		});
-		noteEl.setAttribute("style", "color: gray; font-style: italic; margin-top: 30px;")
+		if (this.plugin.settings.defaultState.sortOrder != SortOrderType.alphabetical || rememberBacklinkNav) {
+			let noteEl = containerEl.createEl("p", {
+				text: `Known issue: The check mark in the menu of "Change sort order" can not be updated. But the sort order takes effect.`
+			});
+			noteEl.setAttribute("style", "color: gray; font-style: italic; margin-top: 30px;")
+		}
 	}
 }

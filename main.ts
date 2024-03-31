@@ -427,6 +427,7 @@ class DefaultQuerySettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.defaultState.sortOrder || SortOrderType.alphabetical)
 					.onChange(async (value) => {
 						this.plugin.settings.defaultState.sortOrder = value as SortOrderType;
+						this.display();
 						await this.plugin.saveSettings();
 					}));
 		new Setting(containerEl)
@@ -441,11 +442,11 @@ class DefaultQuerySettingTab extends PluginSettingTab {
 					});
 			});
 
-		containerEl.createEl("h3", { text: "Remember backlinks navigation" })
+		containerEl.createEl("h3", { text: "Remember backlinks display" })
 
 		new Setting(containerEl)
-			.setName("Remember backlink navigation for each file")
-			.setDesc("Restore backlink navigation configuration when opening a file.")
+			.setName("Remember bottom backlink panel display settings for each file")
+			.setDesc("Remember for each file")
 			.addToggle((toggle) => {
 				toggle
 					.setValue(this.plugin.settings.rememberSettings.rememberBacklinkNav)
@@ -490,7 +491,7 @@ class DefaultQuerySettingTab extends PluginSettingTab {
 		}
 		if (this.plugin.settings.defaultState.sortOrder != SortOrderType.alphabetical || rememberBacklinkNav) {
 			let noteEl = containerEl.createEl("p", {
-				text: `Known issue: The check mark in the menu of "Change sort order" can not be updated. But the sort order takes effect.`
+				text: `Known issue: The check mark in the menu of "Change sort order" can not be updated. It may be confusing but the sort order takes effect actually.`
 			});
 			noteEl.setAttribute("style", "color: gray; font-style: italic; margin-top: 30px;")
 		}

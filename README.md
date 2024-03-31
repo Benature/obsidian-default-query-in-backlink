@@ -1,20 +1,38 @@
 # Default query in backlinks
 
-Automatically input default query in search input of backlinks in document.
+<div align="center">
+
+![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=downloads&query=%24%5B%22default-query-in-backlink%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json) ![GitHub stars](https://img.shields.io/github/stars/Benature/obsidian-default-query-in-backlink?style=flat) ![latest download](https://img.shields.io/github/downloads/Benature/obsidian-default-query-in-backlink/latest/total?style=plastic) 
+[![Github release](https://img.shields.io/github/manifest-json/v/Benature/obsidian-default-query-in-backlink?color=blue)](https://github.com/Benature/obsidian-default-query-in-backlink/releases/latest) ![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/Benature/obsidian-default-query-in-backlink?include_prereleases&label=BRAT%20beta)
+
+[Click to install](https://obsidian.md/plugins?id=default-query-in-backlinks)
+
+</div>
+
+
+This plugin support set custom default navigation of backlinks, including search query, collapse results, show more context, sort order and expanding unlinked mentions.
+
+You can also ask the plugin to remember the bottom backlinks panel display configuration for each file. (thanks to [remember-cursor-position](https://github.com/dy-sh/obsidian-remember-cursor-position))
+
+
+> Chinese introduction: [公众号](https://mp.weixin.qq.com/s/kACkM88Or8JTPXGsOdeQcQ) / [小红书](http://xhslink.com/PxqQNE)
+> 如有汉化需要请联系作者
+
+## Features
+
+Basic: Set default query for bottom backlinks panel.
 
 - Automatically trigger query after file is opened.
 - Custom query is preserved in the same leaf.
 - Overwrite old default query if settings is updated.
 
 <div align="center">
-<img src="https://s2.loli.net/2024/03/04/N5yuQhaF3z6Anop.gif" />
 
-[Click to install](https://obsidian.md/plugins?id=default-query-in-backlinks)
+<img src="https://s2.loli.net/2024/03/04/N5yuQhaF3z6Anop.gif" />
 
 </div>
 
->Chinese introduction: [公众号](https://mp.weixin.qq.com/s/kACkM88Or8JTPXGsOdeQcQ) / [小红书](http://xhslink.com/PxqQNE)
-
+Other demo videos: TBA
 
 ## My Story
 

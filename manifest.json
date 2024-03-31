@@ -1,7 +1,7 @@
 {
 	"id": "default-query-in-backlink",
 	"name": "Default query in backlinks",
-	"version": "0.0.2",
+	"version": "0.1.0",
 	"minAppVersion": "1.5.0",
 	"description": "Automatically input default query in search input of backlinks in document.",
 	"author": "Benature",

@@ -2,6 +2,9 @@
 
 ## dev
 
+## 0.1.3
+- [chore] Add build provenance attestations for main.js and styles.css and refresh the community release review
+
 ## 0.1.2
 - [fix] Resolve all Obsidian community review warnings in source code and the manifest
 - [updated] Adopt the declarative settings API and require Obsidian 1.13.0 or later

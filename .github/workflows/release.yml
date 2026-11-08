@@ -24,10 +24,12 @@ jobs:
         run: npm ci
       - name: Test and build
         run: npm test
-      - name: Attest main.js build provenance
+      - name: Attest release asset build provenance
         uses: actions/attest-build-provenance@v4
         with:
-          subject-path: main.js
+          subject-path: |
+            main.js
+            styles.css
       - name: Create Release
         uses: softprops/action-gh-release@v3
         with:

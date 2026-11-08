@@ -1,4 +1,4 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TAbstractFile } from 'obsidian';
+import { App, MarkdownView, Plugin, PluginSettingTab, SettingDefinitionItem, TAbstractFile } from 'obsidian';
 
 
 enum SortOrderType {
@@ -82,13 +82,7 @@ export default class DefaultQuery extends Plugin {
 		const activeLeaf = this.app.workspace.getActiveViewOfType(MarkdownView);
 		if (activeLeaf === null) { return; }
 
-		// @ts-ignore
-		const backlinks = activeLeaf.leaf.view.backlinks;
-
-		// @ts-ignore
-		// const backlinksEl = activeLeaf.leaf.view.backlinksEl;
-
-		const searchInputContainer = document.querySelector('.workspace-leaf.mod-active .search-input-container');
+		const searchInputContainer = activeDocument.querySelector('.workspace-leaf.mod-active .search-input-container');
 		if (searchInputContainer === null) { return; }
 
 		// Show the search input
@@ -129,7 +123,7 @@ export default class DefaultQuery extends Plugin {
 			this.lastSavedDb = await this.readDb();
 		} catch (e) {
 			console.error(
-				"Default Backlink plugin can\'t read database: " + e
+				"Default Backlink plugin can't read database: " + String(e)
 			);
 			this.db = {};
 			this.lastSavedDb = {};
@@ -138,14 +132,14 @@ export default class DefaultQuery extends Plugin {
 		this.registerEvent(this.app.workspace.on('file-open', (file) => {
 			if (file === null) { return; }
 
-			setTimeout(() => {
+			window.setTimeout(() => {
 				this.restoreEphemeralState();
 			}, 100);
 
 		}));
 
 		this.registerEvent(
-			this.app.workspace.on('quit', () => { this.writeDb(this.db) }),
+			this.app.workspace.on('quit', () => { void this.writeDb(this.db) }),
 		);
 
 
@@ -162,7 +156,7 @@ export default class DefaultQuery extends Plugin {
 		);
 
 		this.registerInterval(
-			window.setInterval(() => this.writeDb(this.db), this.settings.rememberSettings.saveTimer)
+			window.setInterval(() => { void this.writeDb(this.db) }, this.settings.rememberSettings.saveTimer)
 		);
 
 		this.restoreEphemeralState();
@@ -171,25 +165,25 @@ export default class DefaultQuery extends Plugin {
 
 
 	renameFile(file: TAbstractFile, oldPath: string) {
-		let newName = file.path;
-		let oldName = oldPath;
+		const newName = file.path;
+		const oldName = oldPath;
 		this.db[newName] = this.db[oldName];
 		delete this.db[oldName];
 	}
 
 	deleteFile(file: TAbstractFile) {
-		let fileName = file.path;
+		const fileName = file.path;
 		delete this.db[fileName];
 	}
 
 	checkEphemeralStateChanged() {
-		let fileName = this.app.workspace.getActiveFile()?.path;
+		const fileName = this.app.workspace.getActiveFile()?.path;
 
 		//waiting for load new file
 		if (!fileName || !this.lastLoadedFileName || fileName != this.lastLoadedFileName || this.loadingFile)
 			return;
 
-		let st = this.getEphemeralState();
+		const st = this.getEphemeralState();
 		if (st == null) { // fail to get state
 			return;
 		}
@@ -212,18 +206,18 @@ export default class DefaultQuery extends Plugin {
 		);
 	}
 
-	async saveEphemeralState(st: EphemeralState) {
-		let fileName = this.app.workspace.getActiveFile()?.path;
+	saveEphemeralState(st: EphemeralState) {
+		const fileName = this.app.workspace.getActiveFile()?.path;
 		if (fileName && fileName == this.lastLoadedFileName) { //do not save if file changed or was not loaded
 			this.db[fileName] = st;
 		}
 	}
 
 
-	async restoreEphemeralState(specificState: EphemeralState | null = null) {
+	restoreEphemeralState(specificState: EphemeralState | null = null) {
 		let isSet = false;
 		if (this.settings.rememberSettings.rememberBacklinkNav) {
-			let fileName = this.app.workspace.getActiveFile()?.path;
+			const fileName = this.app.workspace.getActiveFile()?.path;
 
 			if (fileName == undefined) { return; }
 
@@ -268,7 +262,7 @@ export default class DefaultQuery extends Plugin {
 		}
 
 		if (await this.app.vault.adapter.exists(dbFileName)) {
-			let data = await this.app.vault.adapter.read(dbFileName);
+			const data = await this.app.vault.adapter.read(dbFileName);
 			db = JSON.parse(data);
 		}
 
@@ -277,12 +271,12 @@ export default class DefaultQuery extends Plugin {
 
 	async writeDb(db: { [file_path: string]: EphemeralState; }) {
 		//create folder for db file if not exist
-		let newParentFolder = this.settings.rememberSettings.dbFileName.substring(0, this.settings.rememberSettings.dbFileName.lastIndexOf("/"));
+		const newParentFolder = this.settings.rememberSettings.dbFileName.substring(0, this.settings.rememberSettings.dbFileName.lastIndexOf("/"));
 		if (!(await this.app.vault.adapter.exists(newParentFolder)))
-			this.app.vault.adapter.mkdir(newParentFolder);
+			await this.app.vault.adapter.mkdir(newParentFolder);
 
 		if (JSON.stringify(this.db) !== JSON.stringify(this.lastSavedDb)) {
-			this.app.vault.adapter.write(
+			await this.app.vault.adapter.write(
 				this.settings.rememberSettings.dbFileName,
 				JSON.stringify(db)
 			);
@@ -294,7 +288,7 @@ export default class DefaultQuery extends Plugin {
 
 	getEphemeralState(): EphemeralState | null {
 
-		let state: EphemeralState = { searchQuery: { query: "" } } as EphemeralState;
+		const state: EphemeralState = { searchQuery: { query: "" } } as EphemeralState;
 		const activeLeaf = this.app.workspace.getActiveViewOfType(MarkdownView);
 		// @ts-ignore
 		const backlinks = activeLeaf?.leaf.view.backlinks;
@@ -366,129 +360,134 @@ class DefaultQuerySettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
-	display(): void {
-		const { containerEl } = this;
+	getSettingDefinitions(): SettingDefinitionItem[] {
+		const rememberBacklinkNav = () => this.plugin.settings.rememberSettings.rememberBacklinkNav;
+		return [
+			{
+				type: "group",
+				heading: "Default backlinks Navigation",
+				items: [
+					{
+						name: "Default query",
+						desc: rememberBacklinkNav()
+							? "Default query will be added only when the note is not remembered."
+							: "The query will be automatically added if the search input is empty.",
+						control: { type: "text", key: "defaultQuery", placeholder: "query", defaultValue: "-path:Diary" },
+					},
+					{
+						name: "Collapse results",
+						control: { type: "toggle", key: "collapseAll", defaultValue: false },
+					},
+					{
+						name: "Show more context",
+						control: { type: "toggle", key: "extraContext", defaultValue: false },
+					},
+					{
+						name: "Sort order",
+						control: {
+							type: "dropdown",
+							key: "sortOrder",
+							defaultValue: SortOrderType.alphabetical,
+							options: {
+								[SortOrderType.alphabetical]: "File name (A to Z)",
+								[SortOrderType.alphabeticalReverse]: "File name (Z to A)",
+								[SortOrderType.byModifiedTime]: "Modified time (new to old)",
+								[SortOrderType.byModifiedTimeReverse]: "Modified time (old to new)",
+								[SortOrderType.byCreatedTime]: "Created time (new to old)",
+								[SortOrderType.byCreatedTimeReverse]: "Created time (old to new)",
+							},
+						},
+					},
+					{
+						name: "Expand Unlinked mentions",
+						control: { type: "toggle", key: "unlinkedCollapsed", defaultValue: false },
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: "Remember backlinks display",
+				items: [
+					{
+						name: "Remember bottom backlink panel display settings for each file",
+						desc: "Remember for each file",
+						control: { type: "toggle", key: "rememberBacklinkNav", defaultValue: false },
+					},
+					{
+						name: "Save timer (ms)",
+						desc: "The interval to save current state to database.",
+						visible: rememberBacklinkNav,
+						control: { type: "number", key: "saveTimer", defaultValue: 1000, min: 0 },
+					},
+					{
+						name: "Check timer (ms)",
+						desc: "The interval to check the state.",
+						visible: rememberBacklinkNav,
+						control: { type: "number", key: "checkTimer", defaultValue: 1000, min: 0 },
+					},
+				],
+			},
+			{
+				name: "Known issue",
+				visible: () => this.plugin.settings.defaultState.sortOrder !== SortOrderType.alphabetical || rememberBacklinkNav(),
+				render: (setting) => {
+					setting.setDesc("The check mark in the menu of Change sort order cannot be updated. The selected sort order still takes effect.");
+					setting.settingEl.addClass("default-query-in-backlink-note");
+				},
+			},
+		];
+	}
 
-		const rememberBacklinkNav = this.plugin.settings.rememberSettings.rememberBacklinkNav;
-
-		containerEl.empty();
-
-		containerEl.createEl("h3", { text: "Default backlinks Navigation" })
-		new Setting(containerEl)
-			.setName('Default query')
-			.setDesc(rememberBacklinkNav ? 'Default query will be added only when the note is not remembered.' :
-				'The query will be automatically added if the search input is empty.')
-			.addText(text => text
-				.setPlaceholder('query')
-				.setValue(this.plugin.settings.defaultState.searchQuery.query)
-				.onChange(async (value) => {
-					this.plugin.lastDefaultQuery.push(this.plugin.settings.defaultState.searchQuery.query);
-					this.plugin.settings.defaultState.searchQuery.query = value;
-					await this.plugin.saveSettings();
-				}));
-		new Setting(containerEl)
-			.setName("Collapse results")
-			// .setDesc("Restore backlink navigation configuration when opening a file.")
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.plugin.settings.defaultState.collapseAll)
-					.onChange(async (value) => {
-						this.plugin.settings.defaultState.collapseAll = value;
-						await this.plugin.saveSettings();
-					});
-			});
-		new Setting(containerEl)
-			.setName("Show more context")
-			// .setDesc("Restore backlink navigation configuration when opening a file.")
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.plugin.settings.defaultState.extraContext)
-					.onChange(async (value) => {
-						this.plugin.settings.defaultState.extraContext = value;
-						await this.plugin.saveSettings();
-					});
-			});
-		new Setting(containerEl)
-			.setName("Sort order")
-			// .setDesc("")
-			.addDropdown(dropDown =>
-				dropDown
-					.addOption(SortOrderType.alphabetical, 'File name (A to Z)')
-					.addOption(SortOrderType.alphabeticalReverse, 'File name (Z to A)')
-					.addOption(SortOrderType.byModifiedTime, 'Modified time (new to old)')
-					.addOption(SortOrderType.byModifiedTimeReverse, 'Modified time (old to new)')
-					.addOption(SortOrderType.byCreatedTime, 'Created time (new to old)')
-					.addOption(SortOrderType.byCreatedTimeReverse, 'Created time (old to new)')
-					.setValue(this.plugin.settings.defaultState.sortOrder || SortOrderType.alphabetical)
-					.onChange(async (value) => {
-						this.plugin.settings.defaultState.sortOrder = value as SortOrderType;
-						this.display();
-						await this.plugin.saveSettings();
-					}));
-		new Setting(containerEl)
-			.setName("Expand Unlinked mentions")
-			// .setDesc("Restore backlink navigation configuration when opening a file.")
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.plugin.settings.defaultState.unlinkedCollapsed)
-					.onChange(async (value) => {
-						this.plugin.settings.defaultState.unlinkedCollapsed = value;
-						await this.plugin.saveSettings();
-					});
-			});
-
-		containerEl.createEl("h3", { text: "Remember backlinks display" })
-
-		new Setting(containerEl)
-			.setName("Remember bottom backlink panel display settings for each file")
-			.setDesc("Remember for each file")
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.plugin.settings.rememberSettings.rememberBacklinkNav)
-					.onChange(async (value) => {
-						this.plugin.settings.rememberSettings.rememberBacklinkNav = value;
-						this.display();
-						await this.plugin.saveSettings();
-					});
-			});
-		if (this.plugin.settings.rememberSettings.rememberBacklinkNav) {
-			new Setting(containerEl)
-				.setName('Save timer (ms)')
-				.setDesc('The interval to save current state to database.')
-				.addText(text => text
-					.setPlaceholder('query')
-					.setValue(this.plugin.settings.rememberSettings.saveTimer.toString())
-					.onChange(async (value) => {
-						let v = Number(value);
-						if (isNaN(v)) {
-							new Notice("Please enter a valid number for save timer.");
-							return;
-						}
-						this.plugin.settings.rememberSettings.saveTimer = v;
-						await this.plugin.saveSettings();
-					}));
-
-			new Setting(containerEl)
-				.setName('Check timer (ms)')
-				.setDesc('The interval to check the state.')
-				.addText(text => text
-					.setPlaceholder('query')
-					.setValue(this.plugin.settings.rememberSettings.checkTimer.toString())
-					.onChange(async (value) => {
-						let v = Number(value);
-						if (isNaN(v)) {
-							new Notice("Please enter a valid number for check timer.");
-							return;
-						}
-						this.plugin.settings.rememberSettings.checkTimer = v;
-						await this.plugin.saveSettings();
-					}));
+	getControlValue(key: string): unknown {
+		switch (key) {
+			case "defaultQuery": return this.plugin.settings.defaultState.searchQuery.query;
+			case "collapseAll": return this.plugin.settings.defaultState.collapseAll;
+			case "extraContext": return this.plugin.settings.defaultState.extraContext;
+			case "sortOrder": return this.plugin.settings.defaultState.sortOrder;
+			case "unlinkedCollapsed": return this.plugin.settings.defaultState.unlinkedCollapsed;
+			case "rememberBacklinkNav": return this.plugin.settings.rememberSettings.rememberBacklinkNav;
+			case "saveTimer": return this.plugin.settings.rememberSettings.saveTimer;
+			case "checkTimer": return this.plugin.settings.rememberSettings.checkTimer;
+			default: return undefined;
 		}
-		if (this.plugin.settings.defaultState.sortOrder != SortOrderType.alphabetical || rememberBacklinkNav) {
-			let noteEl = containerEl.createEl("p", {
-				text: `Known issue: The check mark in the menu of "Change sort order" can not be updated. It may be confusing but the sort order takes effect actually.`
-			});
-			noteEl.setAttribute("style", "color: gray; font-style: italic; margin-top: 30px;")
+	}
+
+	async setControlValue(key: string, value: unknown): Promise<void> {
+		let refresh = false;
+		switch (key) {
+			case "defaultQuery":
+				this.plugin.lastDefaultQuery.push(this.plugin.settings.defaultState.searchQuery.query);
+				this.plugin.settings.defaultState.searchQuery.query = value as string;
+				break;
+			case "collapseAll":
+				this.plugin.settings.defaultState.collapseAll = value as boolean;
+				break;
+			case "extraContext":
+				this.plugin.settings.defaultState.extraContext = value as boolean;
+				break;
+			case "sortOrder":
+				this.plugin.settings.defaultState.sortOrder = value as SortOrderType;
+				refresh = true;
+				break;
+			case "unlinkedCollapsed":
+				this.plugin.settings.defaultState.unlinkedCollapsed = value as boolean;
+				break;
+			case "rememberBacklinkNav":
+				this.plugin.settings.rememberSettings.rememberBacklinkNav = value as boolean;
+				refresh = true;
+				break;
+			case "saveTimer":
+				this.plugin.settings.rememberSettings.saveTimer = value as number;
+				break;
+			case "checkTimer":
+				this.plugin.settings.rememberSettings.checkTimer = value as number;
+				break;
+			default:
+				return;
+		}
+		await this.plugin.saveSettings();
+		if (refresh) {
+			this.update();
 		}
 	}
 }

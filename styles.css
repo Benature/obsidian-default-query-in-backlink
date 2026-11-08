@@ -1,0 +1,5 @@
+.default-query-in-backlink-note {
+	color: var(--text-muted);
+	font-style: italic;
+	margin-top: 30px;
+}

@@ -64,14 +64,14 @@ test('#4: file-open restores the remembered query instead of replacing it with t
 		},
 	};
 	const originalWindow = global.window;
-	const originalSetTimeout = global.setTimeout;
 	global.window = { setInterval: () => 1 };
 	t.after(() => {
 		global.window = originalWindow;
-		global.setTimeout = originalSetTimeout;
 	});
 
 	const plugin = new DefaultQuery(app);
+	let settingTab;
+	plugin.addSettingTab = (tab) => { settingTab = tab; };
 	plugin.loadSettings = async () => {
 		plugin.settings = {
 			defaultState,
@@ -87,11 +87,12 @@ test('#4: file-open restores the remembered query instead of replacing it with t
 	plugin.setEphemeralState = (state) => applied.push(state);
 
 	await plugin.onload();
+	assert.equal(settingTab.getSettingDefinitions().length, 3, 'settings use the declarative API');
 	assert.deepEqual(applied, [defaultState], 'a file without remembered state uses the default');
 	applied.length = 0;
 
 	let scheduled;
-	global.setTimeout = (callback, delay) => {
+	global.window.setTimeout = (callback, delay) => {
 		scheduled = { callback, delay };
 		return 1;
 	};
@@ -101,4 +102,11 @@ test('#4: file-open restores the remembered query instead of replacing it with t
 	scheduled.callback();
 
 	assert.deepEqual(applied, [remembered]);
+
+	let updates = 0;
+	settingTab.update = () => { updates += 1; };
+	plugin.saveSettings = async () => { };
+	await settingTab.setControlValue('rememberBacklinkNav', false);
+	assert.equal(settingTab.getControlValue('rememberBacklinkNav'), false);
+	assert.equal(updates, 1, 'conditional settings refresh after mutation');
 });

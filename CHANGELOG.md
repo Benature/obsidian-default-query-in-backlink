@@ -2,6 +2,12 @@
 
 ## dev
 
+## 0.1.2
+- [fix] Resolve all Obsidian community review warnings in source code and the manifest
+- [updated] Adopt the declarative settings API and require Obsidian 1.13.0 or later
+- [chore] Update development dependencies and eliminate known vulnerabilities
+- [chore] Modernize release automation, including release notes and main.js build attestation
+
 ## 0.1.1
 - [fix] Restore each file's remembered backlink query instead of replacing it with the default ([#4](https://github.com/Benature/obsidian-default-query-in-backlink/issues/4))
 

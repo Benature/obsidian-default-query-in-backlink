@@ -2,6 +2,9 @@
 
 ## dev
 
+## 0.1.1
+- [fix] Restore each file's remembered backlink query instead of replacing it with the default ([#4](https://github.com/Benature/obsidian-default-query-in-backlink/issues/4))
+
 ## 0.1.0-b1
 - [feature] remember navigation [#2](https://github.com/Benature/obsidian-default-query-in-backlink/issues/2)
 - [feature] default collapse, extra context, sort order

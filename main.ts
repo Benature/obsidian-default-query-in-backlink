@@ -138,13 +138,8 @@ export default class DefaultQuery extends Plugin {
 		this.registerEvent(this.app.workspace.on('file-open', (file) => {
 			if (file === null) { return; }
 
-			let st: EphemeralState | null = this.settings.defaultState;
-			// if (this.settings.rememberSettings.rememberBacklinkNav) {
-			// 	st = null;
-			// }
 			setTimeout(() => {
-				this.restoreEphemeralState(st);
-				// this.setQuery(this.settings.defaultState.searchQuery.query);
+				this.restoreEphemeralState();
 			}, 100);
 
 		}));
